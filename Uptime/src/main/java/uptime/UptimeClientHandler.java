@@ -52,10 +52,10 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         println("Sleeping for: "+ UptimeClient.RECONNECT_DELAY + 's');
         final EventLoop loop =ctx.channel().eventLoop();
         loop.schedule(new Runnable() {
-            @Override
+
             public void run() {
                 println("Reconnecting to: " + UptimeClient.HOST + ":"+UptimeClient.PORT);
-                UptimeClinet.connect(UptimeClient.configureBootstrap(new Bootstrap(), loop())):
+                UptimeClient.connect(UptimeClient.configureBootstrap(new Bootstrap(), loop));
             }
         }, UptimeClient.RECONNECT_DELAY, TimeUnit.SECONDS);
     }

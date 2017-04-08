@@ -1,7 +1,13 @@
 package uptime;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoop;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by 301 on 2017/4/8.
@@ -22,6 +28,43 @@ public class UptimeClientHandler extends SimpleChannelInboundHandler<Object> {
         //Discard Received data
     }
 
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
+        if(!(evt instanceof IdleStateEvent)) {
+            return ;
+        }
+
+        IdleStateEvent e= (IdleStateEvent)evt;
+        if(e.state() == IdleState.READER_IDLE){
+            //The connection was OK but there was no traffic for last period.
+            println("Disconnecting due to no inbound traffic");
+            ctx.close();
+        }
+    }
+
+    @Override
+    public void channelInactive(final ChannelHandlerContext ctx) {
+        println("DisConnected from: "+ ctx.channel().remoteAddress());
+    }
+
+    @Override
+    public void channelUnregistered(final ChannelHandlerContext ctx) throws Exception {
+        println("Sleeping for: "+ UptimeClient.RECONNECT_DELAY + 's');
+        final EventLoop loop =ctx.channel().eventLoop();
+        loop.schedule(new Runnable() {
+            @Override
+            public void run() {
+                println("Reconnecting to: " + UptimeClient.HOST + ":"+UptimeClient.PORT);
+                UptimeClinet.connect(UptimeClient.configureBootstrap(new Bootstrap(), loop())):
+            }
+        }, UptimeClient.RECONNECT_DELAY, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
+    }
 
     void println(String msg) {
         if(startTime < 0) {

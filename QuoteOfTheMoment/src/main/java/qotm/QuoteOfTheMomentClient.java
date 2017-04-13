@@ -6,6 +6,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.CharsetUtil;
 import io.netty.util.internal.SocketUtils;
@@ -26,7 +27,7 @@ public final class QuoteOfTheMomentClient {
 
             Channel ch = b.bind(0).sync().channel();
             // Broadcast the QOTM request to port 8080.
-            ch.writeAndFlush(new DataGramPacket(
+            ch.writeAndFlush(new DatagramPacket(
                Unpooled.copiedBuffer("QOTM?", CharsetUtil.UTF_8),
                     SocketUtils.socketAddress("255.255.255.255", PORT))).sync();
             // QuoteOfTheMomentClientHandler will close the DatagramChannel when a
